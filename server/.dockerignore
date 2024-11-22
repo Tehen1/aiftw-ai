@@ -1,0 +1,30 @@
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+.env
+.env.local
+
+# Development
+.git
+.gitignore
+.vscode/
+*.log
+*.sqlite3
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Documentation
+README.md
+docs/
+
+# Docker
+Dockerfile
+.dockerignore

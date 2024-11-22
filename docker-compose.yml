@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  nextjs:
+    container_name: aiftw-nextjs
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - POE_TOKEN=9tB4ROxMqofr_p8_kEjDjh0qz7vxVBmAevXebIHNvbs
+    env_file:
+      - .env.production
+
+  bot:
+    container_name: aiftw-bot
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    restart: always
+    ports:
+      - '8080:8080'
+    environment:
+      - POE_TOKEN=9tB4ROxMqofr_p8_kEjDjh0qz7vxVBmAevXebIHNvbs
+    env_file:
+      - .env.production
