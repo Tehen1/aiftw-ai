@@ -1,4 +1,4 @@
-# Project 16
+# aiftw-ai
 
 A Next.js application with real-time chat capabilities, analytics, and user management.
 
