@@ -1,13 +1,14 @@
-import '@/styles/globals.css';
+import './globals.css';
 import { Inter } from 'next/font/google';
 import { Providers } from './providers';
 import { Navbar } from '@/components/navbar';
+import { FloatingChat } from '@/components/chat/floating-chat';
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata = {
-  title: 'AI Chat Platform',
-  description: 'A modern AI chat platform with multiple model support',
+  title: 'AIFTW - AI Solutions Platform',
+  description: 'Tailored AI solutions to meet your business needs',
 };
 
 export default function RootLayout({
@@ -24,6 +25,7 @@ export default function RootLayout({
             <main className="container mx-auto px-4 py-4">
               {children}
             </main>
+            <FloatingChat />
           </div>
         </Providers>
       </body>
