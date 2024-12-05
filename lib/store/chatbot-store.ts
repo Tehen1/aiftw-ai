@@ -1,5 +1,9 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { PoeError } from '../error';
+import { logger } from '../logger';
+import { poeService } from '../services/poe-service';
+import type { ChatMessage, BotConfig } from '../validations/chatbot';
 
 export interface Chatbot {
   id: string;
@@ -23,15 +27,40 @@ interface ChatbotState {
   deleteChatbot: (id: string) => void;
   selectChatbot: (id: string) => void;
   setError: (error: string | null) => void;
+  messages: ChatMessage[];
+  selectedBot: string | null;
+  bots: BotConfig[];
+  sendMessage: (message: string) => Promise<void>;
+  setSelectedBot: (botName: string) => void;
+  clearMessages: () => void;
+  clearError: () => void;
+  loadBots: () => Promise<void>;
 }
+
+const initialState: ChatbotState = {
+  chatbots: [],
+  selectedChatbot: null,
+  isLoading: false,
+  error: null,
+  messages: [],
+  selectedBot: null,
+  bots: [],
+  addChatbot: () => {},
+  updateChatbot: () => {},
+  deleteChatbot: () => {},
+  selectChatbot: () => {},
+  setError: () => {},
+  sendMessage: async () => {},
+  setSelectedBot: () => {},
+  clearMessages: () => {},
+  clearError: () => {},
+  loadBots: async () => {},
+};
 
 export const useChatbotStore = create<ChatbotState>()(
   persist(
     (set, get) => ({
-      chatbots: [],
-      selectedChatbot: null,
-      isLoading: false,
-      error: null,
+      ...initialState,
 
       addChatbot: (chatbot) => {
         const newChatbot = {
@@ -73,6 +102,60 @@ export const useChatbotStore = create<ChatbotState>()(
 
       setError: (error) => {
         set({ error });
+      },
+
+      sendMessage: async (message: string) => {
+        const { selectedBot } = get();
+        if (!selectedBot) {
+          set({ error: 'No bot selected' });
+          return;
+        }
+
+        set({ isLoading: true, error: null });
+
+        try {
+          const response = await poeService.sendMessage(selectedBot, message);
+          set((state) => ({
+            messages: [...state.messages, { botName: selectedBot, message }],
+          }));
+          logger.info('Message sent successfully', { botName: selectedBot });
+        } catch (error) {
+          const errorMessage = error instanceof PoeError ? error.message : 'Failed to send message';
+          set({ error: errorMessage });
+          logger.error('Failed to send message', { error, botName: selectedBot });
+        } finally {
+          set({ isLoading: false });
+        }
+      },
+
+      setSelectedBot: (botName: string) => {
+        set({ selectedBot: botName });
+        logger.info('Bot selected', { botName });
+      },
+
+      clearMessages: () => {
+        set({ messages: [] });
+        logger.info('Messages cleared');
+      },
+
+      clearError: () => {
+        set({ error: null });
+      },
+
+      loadBots: async () => {
+        set({ isLoading: true, error: null });
+
+        try {
+          const bots = await poeService.getBots();
+          set({ bots });
+          logger.info('Bots loaded successfully', { count: bots.length });
+        } catch (error) {
+          const errorMessage = error instanceof PoeError ? error.message : 'Failed to load bots';
+          set({ error: errorMessage });
+          logger.error('Failed to load bots', { error });
+        } finally {
+          set({ isLoading: false });
+        }
       },
     }),
     {

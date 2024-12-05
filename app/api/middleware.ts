@@ -39,7 +39,7 @@ export async function rateLimitMiddleware(request: NextRequest) {
 
         return response;
     } catch (error) {
-        logger.error('Rate limit middleware error:', error);
+        logger.error('Rate limit middleware error', { error: error instanceof Error ? error.message : String(error) });
         // In case of Redis error, allow the request but log the error
         return NextResponse.next();
     }
@@ -86,7 +86,7 @@ export async function middleware(request: NextRequest) {
         
         return response;
     } catch (error) {
-        logger.error('Middleware error:', error, { requestId });
+        logger.error('Middleware error', { error: error instanceof Error ? error.message : String(error), requestId });
         return NextResponse.json(
             { success: false, error: 'Internal server error', requestId },
             { status: 500 }
@@ -110,7 +110,7 @@ export async function isAuthenticated(request: NextRequest): Promise<boolean> {
         logger.info('Authentication successful', { requestId });
         return true;
     } catch (error) {
-        logger.error('Authentication error:', error, { requestId });
+        logger.error('Authentication error', { error: error instanceof Error ? error.message : String(error), requestId });
         return false;
     }
 }

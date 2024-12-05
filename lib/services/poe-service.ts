@@ -13,8 +13,11 @@ export interface ChatResponse {
 
 class PoeService {
   private static instance: PoeService;
+  private readonly apiBaseUrl: string;
 
-  private constructor() {}
+  private constructor() {
+    this.apiBaseUrl = process.env.NEXT_PUBLIC_POE_SERVER_URL || 'http://localhost:3001';
+  }
 
   static getInstance(): PoeService {
     if (!PoeService.instance) {
@@ -24,7 +27,7 @@ class PoeService {
   }
 
   private async fetchWithError(url: string, options: RequestInit = {}) {
-    const response = await fetch(`${API_BASE_URL}${url}`, {
+    const response = await fetch(`${this.apiBaseUrl}${url}`, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
@@ -42,8 +45,16 @@ class PoeService {
   }
 
   async getBots(): Promise<PoeBot[]> {
-    const { bots } = await this.fetchWithError('/api/bots');
-    return bots;
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/api/bots`);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return await response.json();
+    } catch (error) {
+      console.error('Error fetching bots:', error);
+      throw error;
+    }
   }
 
   async createBot(name: string, prompt: string): Promise<PoeBot> {
@@ -61,11 +72,24 @@ class PoeService {
   }
 
   async sendMessage(botName: string, message: string): Promise<ChatResponse> {
-    const { response } = await this.fetchWithError('/api/chat', {
-      method: 'POST',
-      body: JSON.stringify({ botName, message }),
-    });
-    return response;
+    try {
+      const response = await fetch(`${this.apiBaseUrl}/api/chat`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ botName, message }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error sending message:', error);
+      throw error;
+    }
   }
 }
 

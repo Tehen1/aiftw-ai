@@ -98,6 +98,13 @@ const testimonials = [
   }
 ];
 
+// Utility function for escaping quotes
+function escapeQuotes(text: string) {
+  return text
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 export default function Home() {
   const [chatMessage, setChatMessage] = useState('');
 
@@ -239,7 +246,7 @@ export default function Home() {
                 className="bg-gray-50 dark:bg-gray-800 p-6 rounded-xl shadow-lg"
               >
                 <p className="text-gray-600 dark:text-gray-300 mb-4">
-                  "{testimonial.quote}"
+                  &ldquo;{escapeQuotes(testimonial.quote)}&rdquo;
                 </p>
                 <p className="font-semibold text-gray-900 dark:text-white">
                   - {testimonial.author}

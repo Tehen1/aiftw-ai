@@ -16,6 +16,11 @@ export function usePoe() {
         name: bot.name,
         description,
         model: 'custom',
+        messages: 0,
+        responseRate: 0,
+        status: 'active',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
       });
       toast({
         title: 'Success',

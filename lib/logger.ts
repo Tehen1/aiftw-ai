@@ -1,70 +1,75 @@
-interface LogMeta {
-    [key: string]: any;
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+interface LogEntry {
+  level: LogLevel;
+  message: string;
+  timestamp: string;
+  context?: Record<string, unknown>;
 }
 
 class Logger {
-    private static instance: Logger;
-    private isDevelopment: boolean;
+  private static instance: Logger;
+  private readonly environment: string;
 
-    private constructor() {
-        this.isDevelopment = process.env.NODE_ENV !== 'production';
+  private constructor() {
+    this.environment = process.env.NODE_ENV || 'development';
+  }
+
+  static getInstance(): Logger {
+    if (!Logger.instance) {
+      Logger.instance = new Logger();
     }
+    return Logger.instance;
+  }
 
-    public static getInstance(): Logger {
-        if (!Logger.instance) {
-            Logger.instance = new Logger();
+  private formatMessage(entry: LogEntry): string {
+    const context = entry.context ? ` | context: ${JSON.stringify(entry.context)}` : '';
+    return `[${entry.timestamp}] ${entry.level.toUpperCase()}: ${entry.message}${context}`;
+  }
+
+  private log(level: LogLevel, message: string, context?: Record<string, unknown>) {
+    const entry: LogEntry = {
+      level,
+      message,
+      timestamp: new Date().toISOString(),
+      context,
+    };
+
+    const formattedMessage = this.formatMessage(entry);
+
+    switch (level) {
+      case 'debug':
+        if (this.environment === 'development') {
+          console.debug(formattedMessage);
         }
-        return Logger.instance;
-    }
-
-    private formatMessage(level: string, message: string, meta?: LogMeta): string {
-        const timestamp = new Date().toISOString();
-        const metaString = meta ? ` ${JSON.stringify(meta)}` : '';
-        return `[${timestamp}] [${level}] ${message}${metaString}`;
-    }
-
-    public info(message: string, meta?: LogMeta): void {
-        const formattedMessage = this.formatMessage('INFO', message, meta);
-        console.log(formattedMessage);
-    }
-
-    public error(message: string, error?: Error | any, meta?: LogMeta): void {
-        const errorMeta = {
-            ...meta,
-            error: error instanceof Error ? {
-                name: error.name,
-                message: error.message,
-                stack: this.isDevelopment ? error.stack : undefined
-            } : error
-        };
-
-        const formattedMessage = this.formatMessage('ERROR', message, errorMeta);
-        console.error(formattedMessage);
-    }
-
-    public warn(message: string, meta?: LogMeta): void {
-        const formattedMessage = this.formatMessage('WARN', message, meta);
+        break;
+      case 'info':
+        console.info(formattedMessage);
+        break;
+      case 'warn':
         console.warn(formattedMessage);
+        break;
+      case 'error':
+        console.error(formattedMessage);
+        break;
     }
+  }
 
-    public debug(message: string, meta?: LogMeta): void {
-        if (this.isDevelopment) {
-            const formattedMessage = this.formatMessage('DEBUG', message, meta);
-            console.debug(formattedMessage);
-        }
-    }
+  debug(message: string, context?: Record<string, unknown>) {
+    this.log('debug', message, context);
+  }
+
+  info(message: string, context?: Record<string, unknown>) {
+    this.log('info', message, context);
+  }
+
+  warn(message: string, context?: Record<string, unknown>) {
+    this.log('warn', message, context);
+  }
+
+  error(message: string, context?: Record<string, unknown>) {
+    this.log('error', message, context);
+  }
 }
 
-const logger = {
-    info(message: string, meta?: any) {
-        Logger.getInstance().info(message, meta);
-    },
-    warn(message: string, meta?: any) {
-        Logger.getInstance().warn(message, meta);
-    },
-    error(message: string, meta?: any) {
-        Logger.getInstance().error(message, meta);
-    }
-};
-
-export { logger };
+export const logger = Logger.getInstance();

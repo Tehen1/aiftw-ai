@@ -192,10 +192,10 @@ if __name__ == "__main__":
         # Get the API key from environment variables
         api_key = os.getenv("POE_TOKEN")
         if not api_key:
-            raise ValueError("POE_TOKEN environment variable is required")
-
-        logger.info("Starting AIFTW Bot server...")
-        # Run the bot using FastAPI
-        fp.run(AIFTWBot(), api_key)
+            raise ValueError("POE_TOKEN environment variable not set")
+            
+        # Create and run the bot
+        bot = AIFTWBot()
+        fp.run(bot, access_key=api_key)
     except Exception as e:
-        logger.error(f"Failed to start server: {str(e)}")
+        logger.error(f"Failed to start bot: {str(e)}")
